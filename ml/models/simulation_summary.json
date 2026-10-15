@@ -1,0 +1,35 @@
+{
+  "rows": 114928,
+  "by_plant_type": {
+    "brackish_well": 103436,
+    "seawater": 11492
+  },
+  "unique_real_feeds": 51774,
+  "reject_tds_p10_p50_p90": [
+    1196.0,
+    2896.0,
+    59634.0
+  ],
+  "phreeqc": "phreeqc.dat via `phreeqc` Python package",
+  "gypsum_calibration": {
+    "coef": [
+      -0.1679744428701909,
+      -0.008644705159154463,
+      -1.0314214171124214,
+      -0.002852359306299193
+    ],
+    "n": 3000,
+    "database": "phreeqc.dat",
+    "rmse_log10_si": 0.07678227238051653,
+    "raw_davies_bias_log10": -0.44975859219791725,
+    "ionic_strength_range": [
+      0.0120958873466098,
+      1.9389678545354774
+    ]
+  },
+  "check_vs_usgs_published_si_gypsum": {
+    "n": 500,
+    "mean_diff": -0.040361844995764645,
+    "mae": 0.040361844995764645
+  }
+}
