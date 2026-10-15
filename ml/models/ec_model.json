@@ -1,0 +1,16 @@
+{
+  "coef": [
+    0.16998517881795308,
+    1.153707215102575,
+    -0.03476063803953866,
+    -0.40261000379760875,
+    -0.20583490142650546,
+    -0.009636196040795422
+  ],
+  "tds_min": 302.28002470368705,
+  "tds_max": 8705.258228690802,
+  "n": 48240,
+  "rmse_log10": 0.044571493554562545,
+  "median_abs_pct_err": 4.455279257765904,
+  "fallback": "beyond tds_max: EC grows with FAO slope (TDS mg/L = EC dS/m x 800 above 5 dS/m), below tds_min: TDS = EC dS/m x 640 (FAO Irrigation & Drainage Paper 29)"
+}

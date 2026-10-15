@@ -1,0 +1,165 @@
+# REJECT2VALUE assumptions. Every literature value carries a `source`.
+# `confirm: true` = pending chemist confirmation (listed in the model card).
+
+simulation:
+  recovery_brackish:
+    value: [0.60, 0.88]
+    source: "Typical brackish-water RO recovery range (team brief); capped so concentrate TDS <= scaling.ro_tds_max_mg_l"
+  recovery_seawater:
+    value: [0.35, 0.50]
+    source: "Typical SWRO recovery range (team brief)"
+  rejection_divalent:   # Ca, Mg, SO4
+    value: [0.985, 0.997]
+    source: "Typical polyamide RO membrane ion rejection (team brief)"
+    confirm: true
+  rejection_monovalent: # Na, K, Cl, Br
+    value: [0.96, 0.99]
+    source: "Typical polyamide RO membrane ion rejection (team brief)"
+    confirm: true
+  rejection_hco3:
+    value: [0.95, 0.98]
+    source: "Typical polyamide RO membrane ion rejection (team brief)"
+    confirm: true
+  rejection_sio2:
+    value: [0.95, 0.99]
+    source: "Typical polyamide RO membrane ion rejection (team brief)"
+    confirm: true
+  temp_brackish_c:
+    value: [25, 40]
+    source: "Saudi well water runs warm (team brief); measured USGS temp kept if within range"
+  temp_seawater_c:
+    value: [22, 34]
+    source: "Red Sea / Arabian Gulf surface water annual range (approximate)"
+    confirm: true
+  plant_feed_m3d_brackish:
+    value: [50, 2000]
+    source: "Riyadh has 100+ private RO plants of 50 to >1,000 m3/day (team brief)"
+  plant_feed_m3d_seawater:
+    value: [1000, 50000]
+    source: "Small-to-medium SWRO plant range; our assumption"
+    confirm: true
+  sensor_noise:
+    ec_rel: 0.02
+    ph_abs: 0.05
+    temp_abs: 0.3
+    flow_rel: 0.03
+    missing_frac: 0.02
+    drift_frac_rows: 0.10
+    drift_max_rel: 0.05
+    source: "Typical online sensor accuracy (team brief); drift magnitude is our assumption"
+  seawater_share_of_dataset:
+    value: 0.10
+    source: "Our assumption: keeps SWRO represented without dominating the brackish-focused dataset"
+
+scaling:
+  lsi_max_with_antiscalant:
+    value: 1.8
+    source: "DuPont FilmTec RO technical manual: many antiscalants allow concentrate LSI < 1.8"
+  silica_max_mg_l:
+    value: 150
+    source: "Common RO practice: amorphous silica solubility ~120-150 mg/L (with antiscalant)"
+  gypsum_saturation_max:
+    value: 2.3
+    source: "Typical antiscalant limit for CaSO4 (~230% saturation)"
+    confirm: true
+  gypsum_ksp_25c:
+    value: 2.63e-5   # 10^-4.58
+    source: "Gypsum log Ksp = -4.58 at 25 C (PHREEQC phreeqc.dat)"
+  ro_tds_max_mg_l:
+    value: 70000
+    source: "Typical RO salinity / pressure limit (Tong & Elimelech 2016, Environ. Sci. Technol.)"
+  reduce_recovery_max:
+    value: 0.95
+    source: "Search ceiling for the Reduce path (team brief)"
+  reduce_target_reduction:
+    value: 0.25
+    source: "REJECT2VALUE acceptance criterion: 25% reject-volume reduction target, 10% minimum"
+  reduce_min_reduction:
+    value: 0.10
+    source: "REJECT2VALUE acceptance criterion (minimum)"
+
+reuse_irrigation:   # FAO Ayers & Westcot 1985, Irrigation and Drainage Paper 29 rev. 1
+  tds_no_restriction:
+    value: 450
+    source: "FAO I&D Paper 29 (Ayers & Westcot 1985), Table 1"
+  tds_slight_moderate:
+    value: 2000
+    source: "FAO I&D Paper 29 (Ayers & Westcot 1985), Table 1 (>2000 = severe)"
+  sar_surface_low:
+    value: 3
+    source: "FAO I&D Paper 29, Table 1 (SAR 0-3)"
+  sar_surface_high:
+    value: 9
+    source: "FAO I&D Paper 29, Table 1 (specific Na toxicity, surface irrigation >9 severe)"
+  min_reject_share_in_blend:
+    value: 0.25
+    source: "Our assumption: reuse is only practical if the reject is >=25% of the blended irrigation water"
+    confirm: true
+
+recover_magnesium:
+  mg_oh2_price_usd_t_low_purity:
+    value: [400, 500]
+    source: "Ventimiglia et al. 2025, Desalination (pilot from real RO brine)"
+  mg_oh2_price_usd_t_high_purity:
+    value: [1000, 1500]
+    source: "Ventimiglia et al. 2025, Desalination"
+  production_cost_eur_kg_industrial:
+    value: [0.40, 0.45]
+    source: "Scelfo et al. 2026, Desalination - at 5,000 t/yr scale"
+  industrial_scale_t_yr:
+    value: 5000
+    source: "Scelfo et al. 2026 (scale of the cost estimate)"
+  small_scale_cost_multiplier:
+    value: 3.0
+    source: "Our assumption: small plants (<=50 t/yr) cost ~3x more per kg; interpolated on log-scale up to 5,000 t/yr"
+    confirm: true
+  small_scale_t_yr:
+    value: 50
+    source: "Our assumption (scale where the full multiplier applies)"
+    confirm: true
+  high_purity_max_ca_mg_ratio:
+    value: 0.5
+    source: "Our assumption: high-purity Mg(OH)2 needs low Ca co-precipitation (mass Ca/Mg < 0.5, seawater ~0.3)"
+    confirm: true
+  min_production_t_yr:
+    value: 10
+    source: "Our assumption: below 10 t/yr recovery is not worth operating"
+    confirm: true
+  precipitation_ph:
+    value: 11
+    source: "NaOH precipitation; >97% Mg recovery reported above pH 11 (Ventimiglia et al. 2025)"
+  mg_recovery_efficiency:
+    value: 0.80
+    source: "Team hypothesis #2 (>=80% Mg recovery)"
+  mg_oh2_per_mg:
+    value: 2.4
+    source: "Stoichiometry 58.32/24.305 = 2.40"
+
+economics:
+  usd_to_sar:
+    value: 3.75
+    source: "SAMA fixed peg"
+  eur_to_usd:
+    value: 1.08
+    source: "Approximate ECB reference rate (2024-2025 average); update as needed"
+    confirm: true
+  disposal_cost_sar_m3:
+    value: 2.0
+    source: "PLACEHOLDER - ask experts"
+    confirm: true
+
+dispose:
+  fallback_score:
+    value: 35
+    source: "Our assumption: Treat/Dispose wins only when every value-path scores below this"
+    confirm: true
+  burden_ref_salt_kg_d:
+    value: 1000000
+    source: "Our assumption: 1,000 t salt/day maps to burden score 100 (log scale)"
+
+rvi_weights:
+  resource_value: 0.30
+  reusability: 0.25
+  reduction_potential: 0.30
+  environmental_burden_inverse: 0.15
+  source: "Team default weights (adjustable)"

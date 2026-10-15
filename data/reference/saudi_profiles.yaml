@@ -1,0 +1,97 @@
+# Saudi reference water profiles (hand-entered from published sources).
+# Units: mg/L unless stated; EC in uS/cm.
+# Items marked CONFIRM are pending chemist confirmation.
+
+red_sea_jeddah_seawater:
+  source: "Lenntech seawater composition table (secondary source)"
+  tds: 41000
+  cl: 22219
+  na: 14255
+  so4: 3078
+  mg: 742
+  ca: 225
+  k: 210
+  hco3: 146
+  br: 72
+  status: CONFIRM
+  note: "CONFIRM - Mg/Ca look low vs standard seawater ratios (Mg/Cl here 0.033 vs 0.066 in standard seawater). Not used by default; see red_sea_standard_ratio_seawater."
+
+red_sea_standard_ratio_seawater:
+  source: "Millero et al. 2008, Deep-Sea Research I 55:50-72 (Reference Composition of standard seawater, S=35.165 g/kg), ion ratios scaled to TDS 41000 mg/L; HCO3 from Lenntech table"
+  tds: 41000
+  cl: 22563
+  na: 12570
+  so4: 3162
+  mg: 1497
+  ca: 480
+  k: 465
+  hco3: 146
+  br: 78
+  default_for: red_sea
+  note: "Preferred Red Sea profile unless chemists confirm the Lenntech Mg/Ca values."
+
+arabian_gulf_kuwait_seawater:
+  source: "Lenntech seawater composition table (secondary source)"
+  tds: 45000
+  cl: 23000
+  na: 15850
+  so4: 3200
+  mg: 1765
+  ca: 500
+  k: 460
+  hco3: 142
+
+kfupm_dhahran_brackish:
+  source: "US patent 9481590, citing KFUPM (Dhahran) RO plant analysis"
+  feed:
+    ca: 281.2
+    so4: 611
+  reject_at_70pct_recovery:
+    ca: 866.7
+    so4: 2100
+  recovery: 0.70
+  use: "VALIDATION POINT for the RO simulator (tests/test_pipeline.py)"
+
+riyadh_minjur_wasia_brackish:
+  source: "Riyadh deep aquifers (Minjur / Wasia), RO plants study"
+  tds_range: [800, 3000]
+
+riyadh_reject_typical:
+  source: "National Water Company presentation (Al-Jamaan)"
+  reject_tds_avg: 10000
+  reject_fraction_of_feed: 0.15
+
+midyan_basin_groundwater:
+  source: "Ghrefat et al. 2025, Arab Gulf Journal of Scientific Research"
+  ec_range: [1106, 14290]
+  tds_range: [545, 7027]
+  mg_range: [18.8, 899.3]
+  ca_range: [144.6, 1869.0]
+
+saq_aquifer_groundwater:
+  source: "Saq aquifer, 295 wells (King Saud University study)"
+  ec_range: [284, 9902]
+  ec_mean: 1599.4
+  ion_order: "Na > Ca > Mg > K ; Cl > SO4 > HCO3"
+
+makkah_wadi_fatimah_groundwater:
+  source: "Water 2022, 14(3), 483 (59 wells, Makkah province)"
+  ion_order: "Na > Ca > Mg > K ; Cl > SO4 > HCO3"
+
+makkah_villages_groundwater:
+  source: "King Abdulaziz University study, 3 Makkah villages"
+  so4_range: [33.7, 1920.0]
+
+# Target signature used for the "Saudi-likeness" score (data/processed weighting, Phase 1c).
+# Derived by the team from the profiles above; the ratio centres are our assumption.
+saudi_signature:
+  source: "Derived from the profiles above (TDS/EC ranges, ion dominance order, KFUPM and Midyan Ca/Mg/SO4 values)"
+  status: CONFIRM
+  tds_range: [545, 7027]          # Midyan basin range; covers Riyadh 800-3000 and Saq EC range
+  cation_order: [na, ca, mg, k]   # mg/L dominance order
+  anion_order: [cl, so4, hco3]
+  # log10 mass-ratio centres and tolerances (1 sigma, log10 units)
+  ratios:
+    ca_mg:  {centre: 0.35, sigma: 0.25}   # Ca/Mg ~ 2.2 (Ca-dominant; Midyan Ca 145-1869 vs Mg 19-899)
+    so4_cl: {centre: -0.25, sigma: 0.30}  # SO4/Cl ~ 0.55 (KFUPM SO4 611; sulfate-rich Saudi aquifers)
+    na_cl:  {centre: -0.20, sigma: 0.20}  # Na/Cl ~ 0.63 (near-marine / halite dissolution)

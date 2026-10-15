@@ -1,0 +1,33 @@
+{
+  "cleaning_log": {
+    "raw_rows": 123699,
+    "after_censored_flags": 111313,
+    "after_required_present": 108612,
+    "after_plausible_ranges": 108505,
+    "after_charge_balance_10pct": 85688,
+    "after_tds_300_15000": 52347,
+    "after_dedupe": 51774,
+    "final_rows": 51774
+  },
+  "n_states": 55,
+  "n_aquifers": 76,
+  "saudi_top20_n": 10355,
+  "saudi_top20_median": {
+    "tds": 918.5,
+    "ca": 91.9,
+    "mg": 33.0,
+    "na": 180.0,
+    "cl": 250.0,
+    "so4": 140.0,
+    "hco3": 307.3
+  },
+  "all_median": {
+    "tds": 615.6,
+    "ca": 78.0,
+    "mg": 26.0,
+    "na": 89.0,
+    "cl": 42.0,
+    "so4": 100.0,
+    "hco3": 340.2
+  }
+}
