@@ -1,260 +1,266 @@
 {
   "n_engine_rows": 40000,
   "path_mix_pct": {
-    "reuse": 55.9,
-    "dispose": 24.7,
-    "recover": 10.2,
-    "reduce": 9.2
+    "reuse": 49.7,
+    "reduce": 21.2,
+    "dispose": 19.0,
+    "recover": 10.1
   },
-  "reduce_feasible_pct": 24.0,
-  "reduce_reduction_p50_when_feasible": 0.284,
+  "reduce_feasible_pct": 41.6,
+  "reduce_reduction_p50_when_feasible": 0.374,
   "reduce_limiting_factors_pct": {
-    "current operation: LSI > 1.8 (CaCO3 scaling)": 61.1,
-    "LSI > 1.8 (CaCO3 scaling)": 28.2,
-    "silica > 150 mg/L": 3.9,
-    "current operation: silica > 150 mg/L": 2.9,
-    "current operation: TDS > 70,000 mg/L (RO pressure limit)": 2.1,
+    "current operation: LSI > 1.8 (CaCO3 scaling)": 40.1,
+    "LSI > 1.8 (CaCO3 scaling)": 36.6,
+    "silica > 150 mg/L": 12.3,
+    "current operation: silica > 150 mg/L": 6.0,
+    "current operation: TDS > 70,000 mg/L (RO pressure limit)": 2.2,
     "TDS > 70,000 mg/L (RO pressure limit)": 1.2,
-    "current operation: gypsum saturation > 2.3": 0.2,
-    "gypsum saturation > 2.3": 0.2,
-    "search ceiling (R=0.95)": 0.1
+    "current operation: gypsum saturation > 2.3": 0.6,
+    "gypsum saturation > 2.3": 0.6,
+    "search ceiling (R=0.95)": 0.5
   },
   "clusters": {
     "k": 3,
     "silhouette": {
-      "2": 0.42076355613014604,
-      "3": 0.39670056588679653,
-      "4": 0.3434878319303251,
-      "5": 0.3221479290193427,
-      "6": 0.32158644579959794
+      "2": 0.4252029087330682,
+      "3": 0.38885780749970666,
+      "4": 0.35278511454614964,
+      "5": 0.3223032827085179,
+      "6": 0.32682201228135455
     },
     "gmm_bic": {
-      "2": 68070.11225113545,
-      "3": 45224.26835772409,
-      "4": 42272.097220337826,
-      "5": 41646.13940669622,
-      "6": 40622.306056344016
+      "2": 66908.30568872017,
+      "3": 44394.8407894362,
+      "4": 41537.23256996813,
+      "5": 40983.52209047498,
+      "6": 40501.27247533153
     },
     "archetypes": [
       {
         "cluster": 0,
-        "n": 12837,
-        "share_pct": 32.1,
-        "tds_p50": 3225.3953625122804,
-        "mg_p50": 38.494698202144896,
-        "ca_p50": 136.66938504952336,
-        "so4_p50": 337.2877273258795,
-        "gypsum_sr_p50": 0.033022224667073254,
-        "lsi_p50": 1.7972705889290692,
-        "sar_p50": 17.7661406270488,
-        "hco3_cl_p50": 2.072935743803557,
+        "n": 13464,
+        "share_pct": 33.7,
+        "tds_p50": 3301.652179985618,
+        "mg_p50": 42.68666942879774,
+        "ca_p50": 150.88408058709587,
+        "so4_p50": 533.0788940205161,
+        "gypsum_sr_p50": 0.055889125269355994,
+        "lsi_p50": 1.2988690718110338,
+        "sar_p50": 16.491909035359313,
+        "hco3_cl_p50": 1.8637079668689394,
         "seawater_pct": 0.0,
         "path_mix_pct": {
-          "dispose": 42.0,
-          "reuse": 34.7,
-          "reduce": 23.3,
+          "reduce": 41.0,
+          "reuse": 30.8,
+          "dispose": 28.2,
           "recover": 0.0
         },
-        "top_path": "dispose",
+        "top_path": "reduce",
         "name": "brackish bicarbonate-type"
       },
       {
         "cluster": 1,
-        "n": 22461,
-        "share_pct": 56.2,
-        "tds_p50": 2228.737052739023,
-        "mg_p50": 125.40265399697843,
-        "ca_p50": 361.3411779855316,
-        "so4_p50": 452.2081400443934,
-        "gypsum_sr_p50": 0.15400295086803406,
-        "lsi_p50": 2.0656410246374586,
-        "sar_p50": 2.0589777317648035,
-        "hco3_cl_p50": 14.38135256110313,
-        "seawater_pct": 0.0,
+        "n": 4758,
+        "share_pct": 11.9,
+        "tds_p50": 72223.65593683635,
+        "mg_p50": 2748.2447302905175,
+        "ca_p50": 850.223617604671,
+        "so4_p50": 5451.493652127048,
+        "gypsum_sr_p50": 0.33110302106316825,
+        "lsi_p50": 1.8524803109168957,
+        "sar_p50": 89.26944051887328,
+        "hco3_cl_p50": 0.006433114942059474,
+        "seawater_pct": 84.5,
         "path_mix_pct": {
-          "reuse": 79.8,
-          "dispose": 17.4,
-          "reduce": 2.7,
-          "recover": 0.1
-        },
-        "top_path": "reuse",
-        "name": "low-salinity carbonate-scaling-limited, bicarbonate-type"
-      },
-      {
-        "cluster": 2,
-        "n": 4702,
-        "share_pct": 11.8,
-        "tds_p50": 72306.8948853929,
-        "mg_p50": 2755.0597871819373,
-        "ca_p50": 851.214535559236,
-        "so4_p50": 5462.799085861754,
-        "gypsum_sr_p50": 0.33210143946574155,
-        "lsi_p50": 1.8698678973824405,
-        "sar_p50": 89.32254963099564,
-        "hco3_cl_p50": 0.006422689861774612,
-        "seawater_pct": 85.5,
-        "path_mix_pct": {
-          "recover": 85.7,
-          "dispose": 12.4,
-          "reduce": 1.9,
+          "recover": 84.7,
+          "dispose": 11.1,
+          "reduce": 4.2,
           "reuse": 0.0
         },
         "top_path": "recover",
         "name": "seawater-concentrate high-Mg recoverable"
+      },
+      {
+        "cluster": 2,
+        "n": 21778,
+        "share_pct": 54.4,
+        "tds_p50": 2242.3590003918343,
+        "mg_p50": 125.04580878778586,
+        "ca_p50": 359.4982703217779,
+        "so4_p50": 577.654913029575,
+        "gypsum_sr_p50": 0.2062159047696001,
+        "lsi_p50": 1.6797253597207553,
+        "sar_p50": 1.9857965347194095,
+        "hco3_cl_p50": 13.405468937466999,
+        "seawater_pct": 0.0,
+        "path_mix_pct": {
+          "reuse": 72.2,
+          "dispose": 15.1,
+          "reduce": 12.7,
+          "recover": 0.1
+        },
+        "top_path": "reuse",
+        "name": "low-salinity bicarbonate-type"
       }
     ]
   },
   "decision_tree": {
     "max_depth": 4,
-    "fidelity_to_engine_pct": 98.2,
-    "rules_text": "|--- tds <= 5676.58\n|   |--- sar <= 15.00\n|   |   |--- lsi <= 0.90\n|   |   |   |--- sio2 <= 73.61\n|   |   |   |   |--- class: reduce\n|   |   |   |--- sio2 >  73.61\n|   |   |   |   |--- class: reuse\n|   |   |--- lsi >  0.90\n|   |   |   |--- lsi <= 1.41\n|   |   |   |   |--- class: reuse\n|   |   |   |--- lsi >  1.41\n|   |   |   |   |--- class: reuse\n|   |--- sar >  15.00\n|   |   |--- lsi <= 1.55\n|   |   |   |--- sio2 <= 118.43\n|   |   |   |   |--- class: reduce\n|   |   |   |--- sio2 >  118.43\n|   |   |   |   |--- class: dispose\n|   |   |--- lsi >  1.55\n|   |   |   |--- lsi <= 1.63\n|   |   |   |   |--- class: dispose\n|   |   |   |--- lsi >  1.63\n|   |   |   |   |--- class: dispose\n|--- tds >  5676.58\n|   |--- tds <= 57615.44\n|   |   |--- lsi <= 1.52\n|   |   |   |--- class: reduce\n|   |   |--- lsi >  1.52\n|   |   |   |--- mg <= 1239.07\n|   |   |   |   |--- class: dispose\n|   |   |   |--- mg >  1239.07\n|   |   |   |   |--- class: dispose\n|   |--- tds >  57615.44\n|   |   |--- sio2 <= 5.03\n|   |   |   |--- class: recover\n|   |   |--- sio2 >  5.03\n|   |   |   |--- class: recover\n",
+    "fidelity_to_engine_pct": 95.9,
+    "rules_text": "|--- tds <= 5680.50\n|   |--- sar <= 15.07\n|   |   |--- lsi <= 0.90\n|   |   |   |--- sio2 <= 73.09\n|   |   |   |   |--- class: reduce\n|   |   |   |--- sio2 >  73.09\n|   |   |   |   |--- class: reuse\n|   |   |--- lsi >  0.90\n|   |   |   |--- lsi <= 1.41\n|   |   |   |   |--- class: reuse\n|   |   |   |--- lsi >  1.41\n|   |   |   |   |--- class: reuse\n|   |--- sar >  15.07\n|   |   |--- lsi <= 1.54\n|   |   |   |--- sio2 <= 119.20\n|   |   |   |   |--- class: reduce\n|   |   |   |--- sio2 >  119.20\n|   |   |   |   |--- class: dispose\n|   |   |--- lsi >  1.54\n|   |   |   |--- lsi <= 1.71\n|   |   |   |   |--- class: dispose\n|   |   |   |--- lsi >  1.71\n|   |   |   |   |--- class: dispose\n|--- tds >  5680.50\n|   |--- tds <= 57670.29\n|   |   |--- lsi <= 1.53\n|   |   |   |--- sio2 <= 120.57\n|   |   |   |   |--- class: reduce\n|   |   |   |--- sio2 >  120.57\n|   |   |   |   |--- class: dispose\n|   |   |--- lsi >  1.53\n|   |   |   |--- mg <= 1457.38\n|   |   |   |   |--- class: dispose\n|   |   |   |--- mg >  1457.38\n|   |   |   |   |--- class: dispose\n|   |--- tds >  57670.29\n|   |   |--- reject_flow_m3d <= 715.17\n|   |   |   |--- class: recover\n|   |   |--- reject_flow_m3d >  715.17\n|   |   |   |--- class: recover\n",
     "rules": [
       {
-        "if": "tds <= 5,677 and sar <= 15.00 and lsi > 0.90",
+        "if": "tds <= 5,681 and sar <= 15.07 and lsi > 0.90",
         "then": "Reuse",
-        "purity_pct": 98.3,
-        "samples": 16821
+        "purity_pct": 94.5,
+        "samples": 14600
       },
       {
-        "if": "tds > 5,677 and tds <= 57,615 and lsi > 1.52",
+        "if": "tds > 5,681 and tds <= 57,670 and lsi > 1.53",
         "then": "Treat/Dispose",
-        "purity_pct": 99.2,
-        "samples": 5191
+        "purity_pct": 99.3,
+        "samples": 4086
       },
       {
-        "if": "tds > 57,615",
+        "if": "tds > 57,670",
         "then": "Recover (Mg)",
-        "purity_pct": 99.1,
-        "samples": 3047
+        "purity_pct": 99.0,
+        "samples": 3051
       },
       {
-        "if": "tds <= 5,677 and sar > 15.00 and lsi > 1.55",
-        "then": "Treat/Dispose",
-        "purity_pct": 97.4,
-        "samples": 1947
-      },
-      {
-        "if": "tds <= 5,677 and sar > 15.00 and lsi <= 1.55 and sio2 <= 118",
+        "if": "tds <= 5,681 and sar > 15.07 and lsi <= 1.54 and sio2 <= 119",
         "then": "Reduce",
-        "purity_pct": 98.9,
-        "samples": 1672
+        "purity_pct": 99.8,
+        "samples": 2511
       },
       {
-        "if": "tds <= 5,677 and sar <= 15.00 and lsi <= 0.90 and sio2 <= 73.61",
+        "if": "tds <= 5,681 and sar <= 15.07 and lsi <= 0.90 and sio2 <= 73.09",
         "then": "Reduce",
-        "purity_pct": 97.8,
-        "samples": 454
+        "purity_pct": 97.0,
+        "samples": 1748
       },
       {
-        "if": "tds > 5,677 and tds <= 57,615 and lsi <= 1.52",
+        "if": "tds > 5,681 and tds <= 57,670 and lsi <= 1.53 and sio2 <= 121",
         "then": "Reduce",
-        "purity_pct": 76.1,
-        "samples": 385
+        "purity_pct": 88.4,
+        "samples": 1348
       },
       {
-        "if": "tds <= 5,677 and sar <= 15.00 and lsi <= 0.90 and sio2 > 73.61",
+        "if": "tds <= 5,681 and sar <= 15.07 and lsi <= 0.90 and sio2 > 73.09",
         "then": "Reuse",
-        "purity_pct": 89.0,
-        "samples": 255
+        "purity_pct": 89.5,
+        "samples": 1176
       },
       {
-        "if": "tds <= 5,677 and sar > 15.00 and lsi <= 1.55 and sio2 > 118",
+        "if": "tds <= 5,681 and sar > 15.07 and lsi > 1.54",
         "then": "Treat/Dispose",
-        "purity_pct": 96.5,
-        "samples": 228
+        "purity_pct": 97.1,
+        "samples": 833
+      },
+      {
+        "if": "tds <= 5,681 and sar > 15.07 and lsi <= 1.54 and sio2 > 119",
+        "then": "Treat/Dispose",
+        "purity_pct": 98.3,
+        "samples": 412
+      },
+      {
+        "if": "tds > 5,681 and tds <= 57,670 and lsi <= 1.53 and sio2 > 121",
+        "then": "Treat/Dispose",
+        "purity_pct": 98.7,
+        "samples": 235
       }
     ]
   },
   "path_quantiles": {
     "Treat/Dispose": {
-      "n": 9878,
+      "n": 7596,
       "tds": [
-        2878.94,
-        7390.82,
-        17997.1
+        3286.82,
+        8021.56,
+        19957.75
       ],
       "mg": [
-        4.35,
-        150.43,
-        759.44
+        6.45,
+        253.37,
+        874.31
       ],
       "ca": [
-        17.17,
-        370.65,
-        1816.22
+        25.56,
+        668.3,
+        2008.95
       ],
       "so4": [
-        65.21,
-        2194.88,
-        7922.84
+        232.26,
+        2952.32,
+        9016.91
       ],
       "sar": [
-        3.13,
-        21.41,
-        112.88
+        2.56,
+        17.04,
+        89.36
       ],
       "lsi": [
-        1.66,
-        2.3,
-        3.12
+        1.27,
+        2.1,
+        2.94
       ],
       "gypsum_sr": [
-        0.0,
-        0.26,
-        2.74
+        0.01,
+        0.63,
+        3.3
       ],
       "reject_flow_m3d": [
-        15.19,
-        68.7,
-        303.49
+        14.43,
+        65.24,
+        293.09
       ],
       "recovery": [
-        0.66,
-        0.78,
-        0.86
+        0.67,
+        0.8,
+        0.87
       ]
     },
     "Recover (Mg)": {
-      "n": 4062,
+      "n": 4056,
       "tds": [
-        64666.4,
-        73780.7,
-        84187.67
+        64650.12,
+        73812.12,
+        84214.04
       ],
       "mg": [
-        2398.65,
-        2830.41,
-        3339.04
+        2400.49,
+        2829.43,
+        3338.42
       ],
       "ca": [
-        753.72,
-        851.32,
-        966.58
+        754.04,
+        851.47,
+        966.03
       ],
       "so4": [
-        4908.84,
-        5525.7,
-        6272.51
+        4910.69,
+        5526.32,
+        6267.46
       ],
       "sar": [
-        79.34,
-        90.38,
-        102.32
+        79.39,
+        90.42,
+        102.34
       ],
       "lsi": [
         1.63,
         1.85,
-        2.1
+        2.09
       ],
       "gypsum_sr": [
         0.28,
         0.33,
-        0.41
+        0.4
       ],
       "reject_flow_m3d": [
-        802.73,
-        3818.95,
-        18317.2
+        830.16,
+        3902.71,
+        18755.82
       ],
       "recovery": [
         0.37,
@@ -263,98 +269,98 @@
       ]
     },
     "Reduce": {
-      "n": 3686,
+      "n": 8481,
       "tds": [
-        1080.11,
-        2327.14,
-        5945.05
+        1101.5,
+        2787.57,
+        7833.15
       ],
       "mg": [
-        0.52,
-        7.35,
-        147.99
+        1.12,
+        32.78,
+        203.16
       ],
       "ca": [
-        3.01,
-        30.25,
-        369.61
+        5.41,
+        101.12,
+        473.74
       ],
       "so4": [
-        14.43,
-        276.22,
-        1773.91
+        135.2,
+        628.86,
+        2916.33
       ],
       "sar": [
-        2.95,
-        33.46,
-        140.6
+        1.53,
+        18.79,
+        124.19
       ],
       "lsi": [
-        0.21,
-        1.07,
-        1.46
+        -0.31,
+        0.71,
+        1.33
       ],
       "gypsum_sr": [
         0.0,
-        0.01,
-        0.23
+        0.06,
+        0.54
       ],
       "reject_flow_m3d": [
-        22.31,
-        91.62,
-        417.6
+        21.39,
+        93.85,
+        414.55
       ],
       "recovery": [
         0.61,
-        0.67,
-        0.79
+        0.68,
+        0.81
       ]
     },
     "Reuse": {
-      "n": 22374,
+      "n": 19867,
       "tds": [
-        1083.78,
-        2006.38,
-        4071.63
+        1138.32,
+        2059.64,
+        4070.09
       ],
       "mg": [
-        39.57,
-        106.59,
-        240.24
+        41.25,
+        109.41,
+        241.32
       ],
       "ca": [
-        153.33,
-        322.55,
-        646.47
+        164.17,
+        334.51,
+        653.8
       ],
       "so4": [
-        55.85,
-        295.8,
-        1370.52
+        88.53,
+        404.72,
+        1411.73
       ],
       "sar": [
-        0.45,
-        2.18,
-        7.76
+        0.44,
+        2.09,
+        7.2
       ],
       "lsi": [
-        1.33,
-        1.96,
-        2.71
+        0.99,
+        1.68,
+        2.47
       ],
       "gypsum_sr": [
-        0.02,
-        0.1,
-        0.49
+        0.03,
+        0.15,
+        0.55
       ],
       "reject_flow_m3d": [
-        18.36,
-        79.56,
-        358.39
+        17.7,
+        78.18,
+        350.36
       ],
       "recovery": [
         0.63,
-        0.73,
+        0.74,
         0.85
       ]
     }
@@ -362,99 +368,99 @@
   "recommendation_agreement": {
     "A": {
       "overall": {
-        "n": 26651,
-        "agreement_pct": 84.06
+        "n": 26656,
+        "agreement_pct": 76.19
       },
       "saudi_like_top20": {
-        "n": 5554,
-        "agreement_pct": 80.28
+        "n": 5591,
+        "agreement_pct": 71.51
       },
       "brackish": {
-        "n": 21313,
-        "agreement_pct": 80.08
+        "n": 21314,
+        "agreement_pct": 70.24
       },
       "seawater": {
-        "n": 5338,
-        "agreement_pct": 99.98
+        "n": 5342,
+        "agreement_pct": 99.94
       },
-      "excluded_rows_missing_sensor": 1688,
+      "excluded_rows_missing_sensor": 1683,
       "confusion": {
         "dispose": {
-          "dispose": 3897,
-          "recover": 21,
-          "reduce": 445,
-          "reuse": 676
+          "dispose": 2563,
+          "recover": 22,
+          "reduce": 320,
+          "reuse": 288
         },
         "recover": {
           "dispose": 0,
-          "recover": 5337,
+          "recover": 5339,
           "reduce": 0,
           "reuse": 0
         },
         "reduce": {
-          "dispose": 206,
-          "recover": 0,
-          "reduce": 597,
-          "reuse": 377
+          "dispose": 732,
+          "recover": 3,
+          "reduce": 2368,
+          "reuse": 1974
         },
         "reuse": {
-          "dispose": 1595,
-          "recover": 5,
-          "reduce": 922,
-          "reuse": 12573
+          "dispose": 1416,
+          "recover": 0,
+          "reduce": 1591,
+          "reuse": 10040
         }
       }
     },
     "B": {
       "overall": {
-        "n": 26662,
-        "agreement_pct": 98.45
+        "n": 26668,
+        "agreement_pct": 97.61
       },
       "saudi_like_top20": {
-        "n": 5558,
-        "agreement_pct": 97.41
+        "n": 5593,
+        "agreement_pct": 96.48
       },
       "brackish": {
-        "n": 21324,
-        "agreement_pct": 98.06
+        "n": 21323,
+        "agreement_pct": 97.01
       },
       "seawater": {
-        "n": 5338,
+        "n": 5345,
         "agreement_pct": 100.0
       },
-      "excluded_rows_missing_sensor": 1677,
+      "excluded_rows_missing_sensor": 1671,
       "confusion": {
         "dispose": {
-          "dispose": 5548,
-          "recover": 1,
-          "reduce": 65,
-          "reuse": 87
+          "dispose": 4509,
+          "recover": 0,
+          "reduce": 52,
+          "reuse": 72
         },
         "recover": {
-          "dispose": 3,
-          "recover": 5362,
+          "dispose": 2,
+          "recover": 5367,
           "reduce": 0,
           "reuse": 0
         },
         "reduce": {
-          "dispose": 68,
+          "dispose": 92,
           "recover": 0,
-          "reduce": 1838,
-          "reuse": 42
+          "reduce": 4075,
+          "reuse": 156
         },
         "reuse": {
-          "dispose": 86,
+          "dispose": 109,
           "recover": 0,
-          "reduce": 61,
-          "reuse": 13501
+          "reduce": 154,
+          "reuse": 12080
         }
       }
     },
     "true_path_mix_pct": {
-      "reuse": 51.2,
-      "dispose": 21.3,
+      "reuse": 46.1,
       "recover": 20.2,
-      "reduce": 7.3
+      "dispose": 17.6,
+      "reduce": 16.1
     }
   }
 }

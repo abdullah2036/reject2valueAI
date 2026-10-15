@@ -47,6 +47,17 @@ simulation:
     drift_frac_rows: 0.10
     drift_max_rel: 0.05
     source: "Typical online sensor accuracy (team brief); drift magnitude is our assumption"
+  acid_dosing_share_brackish:
+    value: 0.60
+    source: "Our assumption: share of brackish RO plants dosing H2SO4 to control carbonate scaling"
+    confirm: true
+  acid_target_feed_ph:
+    value: [6.5, 7.2]
+    source: "Typical acidified RO feed pH range (DuPont FilmTec RO manual, scale control section)"
+    confirm: true
+  carbonate_pk1:
+    value: 6.35
+    source: "First dissociation constant of carbonic acid, pK1 = 6.35 at 25 C (Plummer & Busenberg 1982)"
   seawater_share_of_dataset:
     value: 0.10
     source: "Our assumption: keeps SWRO represented without dominating the brackish-focused dataset"

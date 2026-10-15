@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 
 from simulation import chemistry as chem
-from simulation.ro_model import mean_rejection
+from simulation.ro_model import acid_dose, mean_rejection
 
 MODEL_PATH = Path(__file__).resolve().parents[1] / "models" / "soft_sensor.joblib"
 TARGETS = ["ca", "mg", "na", "k", "cl", "so4", "hco3", "sio2"]
@@ -44,6 +44,18 @@ def build_features(df, mode):
             x[f"lab_{i}"] = lab[i]
             x[f"lab_{i}_x_cf"] = lab[i] * x["cf"]
             x[f"lab_{i}_x_ec"] = lab[i] * scale_ec
+        # acid dosing: dosed feed pH follows from reject pH (CO2 passes, HCO3 concentrates);
+        # with the raw lab pH this gives the H2SO4 dose and the dosed HCO3 / SO4
+        r = x["m_recovery"].to_numpy(dtype=float)
+        cf_h = (1 - r * (1 - MEAN_REJECTION["hco3"])) / (1 - r)
+        x["est_dosed_feed_ph"] = x["m_reject_ph"] - np.log10(cf_h)
+        lab_ph = df["lab_ph"].astype(float).to_numpy() if "lab_ph" in df else np.full(len(df), np.nan)
+        dosed, _, acid = acid_dose(lab, lab_ph, x["est_dosed_feed_ph"].to_numpy())
+        x["lab_ph"] = lab_ph
+        x["est_acid_mg_l"] = acid
+        for i in ["hco3", "so4"]:
+            x[f"lab_{i}_dosed"] = dosed[i].to_numpy()
+            x[f"lab_{i}_dosed_x_cf"] = x[f"lab_{i}_dosed"] * x["cf"]
         tot = sum(chem.meq(lab, i) for i in chem.CATIONS + chem.ANIONS)
         for i in ["ca", "mg", "so4", "hco3", "na"]:
             x[f"lab_{i}_frac"] = chem.meq(lab, i) / tot
@@ -61,7 +73,11 @@ def log_offset(x, mode, t):
     r = x["m_recovery"].to_numpy(dtype=float)
     cf = (1 - r * (1 - rej)) / (1 - r)
     cf = np.where(np.isfinite(cf), cf, x["ec_ratio"].to_numpy(dtype=float))
-    return np.log(np.maximum(x[f"lab_{t}"].to_numpy(dtype=float) * cf, 1e-6))
+    lab = x[f"lab_{t}"].to_numpy(dtype=float)
+    if f"lab_{t}_dosed" in x:  # acid-corrected lab value when the lab pH is known
+        dosed = x[f"lab_{t}_dosed"].to_numpy(dtype=float)
+        lab = np.where(np.isfinite(dosed), dosed, lab)
+    return np.log(np.maximum(lab * cf, 1e-6))
 
 
 def has_lab(df):

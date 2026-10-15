@@ -78,6 +78,13 @@ def simulate(feeds, rng):
     rec[sw] = rng.uniform(*A("simulation", "recovery_seawater"), sw.sum())
     rej = ro.sample_rejection(n, rng)
 
+    # acid (H2SO4) dosing on a share of brackish plants; the lab analysis stays the raw well water
+    dosed_mask = ~sw & (rng.random(n) < A("simulation", "acid_dosing_share_brackish"))
+    target = np.where(dosed_mask, rng.uniform(*A("simulation", "acid_target_feed_ph"), n), 14.0)
+    raw = feeds
+    feeds, ph_dosed, acid = ro.acid_dose(feeds.reset_index(drop=True), feeds["ph"].to_numpy(), target)
+    feeds["ph"] = ph_dosed
+
     conc = ro.concentrate(feeds, rec, rej)
     perm = ro.permeate(feeds, rej)
     out = pd.DataFrame({"feed_id": feeds["feed_id"], "group": feeds["group"], "state": feeds["state"],
@@ -87,8 +94,12 @@ def simulate(feeds, rng):
                         "sio2_imputed": feeds["sio2_imputed"].astype(bool),
                         "recovery": rec, "temp_c": feeds["temp_c"].to_numpy(),
                         "feed_ph": feeds["ph"].to_numpy(), "feed_tds": feeds["tds"].to_numpy()})
+    out["acid_dosed"] = acid > 0
+    out["acid_h2so4_mg_l"] = acid
+    out["raw_feed_ph"] = raw["ph"].to_numpy()
     for ion in chem.IONS:
-        out[f"feed_{ion}"] = chem._get(feeds, ion)
+        out[f"feed_{ion}"] = chem._get(raw, ion)  # raw well water (what the lab measures)
+        out[f"dosed_feed_{ion}"] = chem._get(feeds, ion)
         out[ion] = conc[ion].to_numpy()
         out[f"perm_{ion}"] = perm[ion].to_numpy()
     out["rej_mono"], out["rej_di"] = rej["na"], rej["ca"]
@@ -97,10 +108,11 @@ def simulate(feeds, rng):
 
     # conductivity: real measured feed EC where available; reject EC from the fitted EC model,
     # carrying over each water's own deviation from the model (composition-specific conductivity)
-    ec_feed_model = chem.predict_ec(feeds)
-    ec_feed = feeds["ec_us_cm"].to_numpy(dtype=float)
+    ec_feed_model = chem.predict_ec(raw)
+    ec_feed = raw["ec_us_cm"].to_numpy(dtype=float)
     ec_feed = np.where(np.isfinite(ec_feed), ec_feed, ec_feed_model)
     anomaly = np.clip(ec_feed / ec_feed_model, 0.8, 1.25)
+    ec_feed = ec_feed * chem.predict_ec(feeds) / ec_feed_model  # acid dosing shifts feed EC slightly
     out["feed_ec"] = ec_feed
     out["reject_ec"] = chem.predict_ec(conc) * anomaly
     out["tds"] = chem.tds_from_ions(conc)
@@ -133,6 +145,7 @@ def add_sensors(df, rng):
     d = rng.uniform(0, 0.15, n)
     for ion in chem.IONS:
         df[f"lab_{ion}"] = df[f"feed_{ion}"] * (1 + rng.uniform(-1, 1, n) * d)
+    df["lab_ph"] = df["raw_feed_ph"] + rng.normal(0, 0.1, n)  # raw well-water pH (before any acid dosing)
     return df
 
 

@@ -13,6 +13,7 @@ import pandas as pd
 from engine import A
 from simulation import chemistry as chem
 
+MW_HCO3 = chem.MW["hco3"]
 ION_GROUP = {"ca": "rejection_divalent", "mg": "rejection_divalent", "so4": "rejection_divalent",
              "na": "rejection_monovalent", "k": "rejection_monovalent", "cl": "rejection_monovalent",
              "hco3": "rejection_hco3", "sio2": "rejection_sio2"}
@@ -55,6 +56,22 @@ def feed_from_concentrate(conc, recovery, rejection=None):
     r = np.asarray(recovery, dtype=float)
     return pd.DataFrame({ion: chem._get(conc, ion) * (1.0 - r) / (1.0 - r * (1.0 - rejection[ion]))
                          for ion in chem.IONS})
+
+
+def acid_dose(feed, ph_feed, ph_target):
+    """H2SO4 dosing of the feed down to ph_target (closed carbonate system, CO3 neglected).
+    Returns (dosed feed, dosed pH, H2SO4 dose mg/L). HCO3 -> CO2 consumes acid; sulfate is added."""
+    pk1 = A("simulation", "carbonate_pk1")
+    ph_feed, ph_target = np.asarray(ph_feed, float), np.asarray(ph_target, float)
+    ph_new = np.minimum(ph_feed, ph_target)
+    hco3_mmol = chem._get(feed, "hco3") / MW_HCO3
+    ct = hco3_mmol * (1 + 10 ** (pk1 - ph_feed))
+    hco3_new = ct / (1 + 10 ** (pk1 - ph_new))
+    acid_meq = np.maximum(hco3_mmol - hco3_new, 0)
+    dosed = feed.copy() if isinstance(feed, pd.DataFrame) else pd.DataFrame(feed)
+    dosed["hco3"] = hco3_new * MW_HCO3
+    dosed["so4"] = chem._get(feed, "so4") + acid_meq * 96.06 / 2
+    return dosed, ph_new, acid_meq * 98.08 / 2
 
 
 def concentrate_state(feed, ph_feed, temp_c, recovery, rejection=None):

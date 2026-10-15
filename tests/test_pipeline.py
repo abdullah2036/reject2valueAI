@@ -52,3 +52,39 @@ def test_ec_model_monotonic():
     ecs = [chem.predict_ec(base * f)[0] for f in [1, 2, 5, 10, 40, 80]]
     assert all(b > a for a, b in zip(ecs, ecs[1:]))
     assert 0.55 < chem.tds_from_ions(base)[0] / ecs[0] < 0.8
+
+
+def test_acid_dosing_lowers_hco3_and_adds_sulfate():
+    feed = pd.DataFrame({"hco3": [250.0], "so4": [300.0]})
+    dosed, ph, acid = ro.acid_dose(feed, [7.5], [6.9])
+    assert dosed["hco3"][0] < 250 and dosed["so4"][0] > 300 and ph[0] == pytest.approx(6.9) and acid[0] > 0
+    _, ph2, acid2 = ro.acid_dose(feed, [6.5], [6.9])  # already below target: no dosing
+    assert ph2[0] == pytest.approx(6.5) and acid2[0] == 0
+
+
+MODELS_READY = (chem.MODELS_DIR / "soft_sensor.joblib").exists()
+
+
+@pytest.mark.skipif(not MODELS_READY, reason="run scripts/run_full_pipeline.py first")
+def test_engine_seawater_recovers_mg():
+    from engine.decide import run_engine
+    sw = pd.DataFrame([{"ca": 830, "mg": 2580, "na": 21700, "k": 800, "cl": 38900, "so4": 5450, "hco3": 250,
+                        "sio2": 2.6, "reject_ph": 8.3, "temp_c": 30, "recovery": 0.42, "reject_flow_m3d": 5800}])
+    e = run_engine(sw).iloc[0]
+    assert e["recommended"] == "recover" and e["recover_t_yr"] > 1000
+
+
+@pytest.mark.skipif(not MODELS_READY, reason="run scripts/run_full_pipeline.py first")
+def test_api_examples():
+    from fastapi.testclient import TestClient
+
+    from api.main import EXAMPLES, app
+    with TestClient(app) as c:
+        assert c.get("/health").json()["models_loaded"]
+        for ex in EXAMPLES.values():
+            r = c.post("/analyze", json=ex["value"])
+            assert r.status_code == 200, r.text
+            j = r.json()
+            assert 0 <= j["rvi"] <= 100 and len(j["ranked_paths"]) == 4
+            mg = j["predicted_reject_composition"]["mg"]
+            assert mg["p10"] <= mg["mg_l"] <= mg["p90"]

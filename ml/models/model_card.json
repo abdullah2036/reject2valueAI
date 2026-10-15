@@ -1,0 +1,1413 @@
+{
+  "name": "REJECT2VALUE soft sensor + decision engine",
+  "version": "0.1.0",
+  "built": "2026-10-15",
+  "intended_use": "Decision support for RO plant operators: estimate reject (concentrate) chemistry from online sensors (+ the last feed lab analysis) and rank Reduce / Reuse / Recover (Mg) / Treat-Dispose. Runs fully locally (no external APIs). Not a substitute for lab analysis before capital decisions.",
+  "data_sources": [
+    {
+      "name": "USGS Brackish Groundwater major-ions dataset",
+      "citation": "Qi, S.L., and Harris, A.C., 2017, Geochemical Database for the Brackish Groundwater Assessment of the United States, U.S. Geological Survey data release",
+      "doi": "https://doi.org/10.5066/F72F7KK1",
+      "url": "https://www.sciencebase.gov/catalog/item/58937228e4b0fa1e59b73361"
+    },
+    {
+      "name": "red_sea_jeddah_seawater",
+      "citation": "Lenntech seawater composition table (secondary source)"
+    },
+    {
+      "name": "red_sea_standard_ratio_seawater",
+      "citation": "Millero et al. 2008, Deep-Sea Research I 55:50-72 (Reference Composition of standard seawater, S=35.165 g/kg), ion ratios scaled to TDS 41000 mg/L; HCO3 from Lenntech table"
+    },
+    {
+      "name": "arabian_gulf_kuwait_seawater",
+      "citation": "Lenntech seawater composition table (secondary source)"
+    },
+    {
+      "name": "kfupm_dhahran_brackish",
+      "citation": "US patent 9481590, citing KFUPM (Dhahran) RO plant analysis"
+    },
+    {
+      "name": "riyadh_minjur_wasia_brackish",
+      "citation": "Riyadh deep aquifers (Minjur / Wasia), RO plants study"
+    },
+    {
+      "name": "riyadh_reject_typical",
+      "citation": "National Water Company presentation (Al-Jamaan)"
+    },
+    {
+      "name": "midyan_basin_groundwater",
+      "citation": "Ghrefat et al. 2025, Arab Gulf Journal of Scientific Research"
+    },
+    {
+      "name": "saq_aquifer_groundwater",
+      "citation": "Saq aquifer, 295 wells (King Saud University study)"
+    },
+    {
+      "name": "makkah_wadi_fatimah_groundwater",
+      "citation": "Water 2022, 14(3), 483 (59 wells, Makkah province)"
+    },
+    {
+      "name": "makkah_villages_groundwater",
+      "citation": "King Abdulaziz University study, 3 Makkah villages"
+    },
+    {
+      "name": "saudi_signature",
+      "citation": "Derived from the profiles above (TDS/EC ranges, ion dominance order, KFUPM and Midyan Ca/Mg/SO4 values)"
+    }
+  ],
+  "real_samples": {
+    "raw_analyses": 123699,
+    "after_cleaning": 51774,
+    "cleaning_log": {
+      "raw_rows": 123699,
+      "after_censored_flags": 111313,
+      "after_required_present": 108612,
+      "after_plausible_ranges": 108505,
+      "after_charge_balance_10pct": 85688,
+      "after_tds_300_15000": 52347,
+      "after_dedupe": 51774,
+      "final_rows": 51774
+    },
+    "states": 55,
+    "aquifers": 76,
+    "saudi_like_top20_samples": 10355,
+    "saudi_weighting": "sample_weight = 0.05 + saudi_score^2; saudi_score from TDS range, ion dominance order and Ca/Mg, SO4/Cl, Na/Cl ratios (saudi_profiles.yaml)"
+  },
+  "simulation": {
+    "rows": 114928,
+    "by_plant_type": {
+      "brackish_well": 103436,
+      "seawater": 11492
+    },
+    "assumptions": {
+      "recovery_brackish": {
+        "value": [
+          0.6,
+          0.88
+        ],
+        "source": "Typical brackish-water RO recovery range (team brief); capped so concentrate TDS <= scaling.ro_tds_max_mg_l"
+      },
+      "recovery_seawater": {
+        "value": [
+          0.35,
+          0.5
+        ],
+        "source": "Typical SWRO recovery range (team brief)"
+      },
+      "rejection_divalent": {
+        "value": [
+          0.985,
+          0.997
+        ],
+        "source": "Typical polyamide RO membrane ion rejection (team brief)",
+        "confirm": true
+      },
+      "rejection_monovalent": {
+        "value": [
+          0.96,
+          0.99
+        ],
+        "source": "Typical polyamide RO membrane ion rejection (team brief)",
+        "confirm": true
+      },
+      "rejection_hco3": {
+        "value": [
+          0.95,
+          0.98
+        ],
+        "source": "Typical polyamide RO membrane ion rejection (team brief)",
+        "confirm": true
+      },
+      "rejection_sio2": {
+        "value": [
+          0.95,
+          0.99
+        ],
+        "source": "Typical polyamide RO membrane ion rejection (team brief)",
+        "confirm": true
+      },
+      "temp_brackish_c": {
+        "value": [
+          25,
+          40
+        ],
+        "source": "Saudi well water runs warm (team brief); measured USGS temp kept if within range"
+      },
+      "temp_seawater_c": {
+        "value": [
+          22,
+          34
+        ],
+        "source": "Red Sea / Arabian Gulf surface water annual range (approximate)",
+        "confirm": true
+      },
+      "plant_feed_m3d_brackish": {
+        "value": [
+          50,
+          2000
+        ],
+        "source": "Riyadh has 100+ private RO plants of 50 to >1,000 m3/day (team brief)"
+      },
+      "plant_feed_m3d_seawater": {
+        "value": [
+          1000,
+          50000
+        ],
+        "source": "Small-to-medium SWRO plant range; our assumption",
+        "confirm": true
+      },
+      "sensor_noise": {
+        "ec_rel": 0.02,
+        "ph_abs": 0.05,
+        "temp_abs": 0.3,
+        "flow_rel": 0.03,
+        "missing_frac": 0.02,
+        "drift_frac_rows": 0.1,
+        "drift_max_rel": 0.05,
+        "source": "Typical online sensor accuracy (team brief); drift magnitude is our assumption"
+      },
+      "acid_dosing_share_brackish": {
+        "value": 0.6,
+        "source": "Our assumption: share of brackish RO plants dosing H2SO4 to control carbonate scaling",
+        "confirm": true
+      },
+      "acid_target_feed_ph": {
+        "value": [
+          6.5,
+          7.2
+        ],
+        "source": "Typical acidified RO feed pH range (DuPont FilmTec RO manual, scale control section)",
+        "confirm": true
+      },
+      "carbonate_pk1": {
+        "value": 6.35,
+        "source": "First dissociation constant of carbonic acid, pK1 = 6.35 at 25 C (Plummer & Busenberg 1982)"
+      },
+      "seawater_share_of_dataset": {
+        "value": 0.1,
+        "source": "Our assumption: keeps SWRO represented without dominating the brackish-focused dataset"
+      }
+    },
+    "ec_model": {
+      "coef": [
+        0.16998517881795308,
+        1.153707215102575,
+        -0.03476063803953866,
+        -0.40261000379760875,
+        -0.20583490142650546,
+        -0.009636196040795422
+      ],
+      "tds_min": 302.28002470368705,
+      "tds_max": 8705.258228690802,
+      "n": 48240,
+      "rmse_log10": 0.044571493554562545,
+      "median_abs_pct_err": 4.455279257765904,
+      "fallback": "beyond tds_max: EC grows with FAO slope (TDS mg/L = EC dS/m x 800 above 5 dS/m), below tds_min: TDS = EC dS/m x 640 (FAO Irrigation & Drainage Paper 29)"
+    },
+    "chemistry_engine": "phreeqc.dat via `phreeqc` Python package",
+    "gypsum_calibration_vs_phreeqc": {
+      "coef": [
+        -0.16285717019305546,
+        0.054865511654810316,
+        -1.0888512438316849,
+        -0.0020419255533211805
+      ],
+      "n": 3000,
+      "database": "phreeqc.dat",
+      "rmse_log10_si": 0.05774095189184954,
+      "raw_davies_bias_log10": -0.4301405174720626,
+      "ionic_strength_range": [
+        0.012097565954992357,
+        1.9429894504148744
+      ]
+    },
+    "phreeqc_check_vs_usgs_published_si": {
+      "n": 500,
+      "mean_diff": -0.040361844995764645,
+      "mae": 0.040361844995764645
+    }
+  },
+  "validation_kfupm": {
+    "case": "KFUPM Dhahran brackish RO, feed Ca 281.2 / SO4 611 mg/L at R = 0.70 (US patent 9481590)",
+    "result": {
+      "ca": {
+        "simulated": 931.4281333333332,
+        "measured": 866.7,
+        "error_pct": 7.4683435252490105
+      },
+      "so4": {
+        "simulated": 2023.8356666666664,
+        "measured": 2100,
+        "error_pct": -3.6268730158730333
+      }
+    },
+    "passes_15pct": true
+  },
+  "soft_sensor": {
+    "model": "LightGBM per ion on log-concentration, residual over a physics prior (Mode A: reject EC; Mode B: last-lab feed ion x concentration factor); conformalised quantile models (P10/P90) for Mg and Ca",
+    "split": {
+      "type": "grouped holdout - whole US states + Arabian Gulf seawater never seen in training",
+      "test_groups": [
+        "AR",
+        "CA",
+        "FL",
+        "LA",
+        "MS",
+        "NC",
+        "NJ",
+        "NM",
+        "SW_GULF",
+        "WA",
+        "WY"
+      ],
+      "n_train": 86589,
+      "n_test": 28339
+    },
+    "acceptance": "within +/-15% (minimum), +/-10% (target)",
+    "metrics_table": [
+      {
+        "mode": "A",
+        "subset": "overall",
+        "target": "ca",
+        "n": 28313,
+        "within_15pct": 32.5,
+        "within_10pct": 25.9,
+        "mape_pct": 234.5,
+        "median_ape_pct": 33.4,
+        "r2_log": 0.386,
+        "baseline_within_15pct": 29.6,
+        "p10_p90_coverage_pct": 84.2
+      },
+      {
+        "mode": "A",
+        "subset": "overall",
+        "target": "mg",
+        "n": 28313,
+        "within_15pct": 29.0,
+        "within_10pct": 21.9,
+        "mape_pct": 405.7,
+        "median_ape_pct": 44.3,
+        "r2_log": 0.653,
+        "baseline_within_15pct": 17.3,
+        "p10_p90_coverage_pct": 69.3
+      },
+      {
+        "mode": "A",
+        "subset": "overall",
+        "target": "na",
+        "n": 28313,
+        "within_15pct": 30.8,
+        "within_10pct": 13.4,
+        "mape_pct": 54.4,
+        "median_ape_pct": 28.1,
+        "r2_log": 0.895,
+        "baseline_within_15pct": 7.1
+      },
+      {
+        "mode": "A",
+        "subset": "overall",
+        "target": "k",
+        "n": 28281,
+        "within_15pct": 28.5,
+        "within_10pct": 17.0,
+        "mape_pct": 93.3,
+        "median_ape_pct": 40.7,
+        "r2_log": 0.816,
+        "baseline_within_15pct": 24.9
+      },
+      {
+        "mode": "A",
+        "subset": "overall",
+        "target": "cl",
+        "n": 28313,
+        "within_15pct": 27.6,
+        "within_10pct": 21.1,
+        "mape_pct": 137.6,
+        "median_ape_pct": 48.2,
+        "r2_log": 0.837,
+        "baseline_within_15pct": 22.2
+      },
+      {
+        "mode": "A",
+        "subset": "overall",
+        "target": "so4",
+        "n": 28313,
+        "within_15pct": 28.8,
+        "within_10pct": 20.0,
+        "mape_pct": 788.9,
+        "median_ape_pct": 41.7,
+        "r2_log": 0.559,
+        "baseline_within_15pct": 24.9
+      },
+      {
+        "mode": "A",
+        "subset": "overall",
+        "target": "hco3",
+        "n": 28313,
+        "within_15pct": 35.6,
+        "within_10pct": 25.4,
+        "mape_pct": 55.8,
+        "median_ape_pct": 24.1,
+        "r2_log": 0.581,
+        "baseline_within_15pct": 33.2
+      },
+      {
+        "mode": "A",
+        "subset": "overall",
+        "target": "sio2",
+        "n": 20626,
+        "within_15pct": 11.8,
+        "within_10pct": 7.7,
+        "mape_pct": 82.7,
+        "median_ape_pct": 47.1,
+        "r2_log": -0.04,
+        "baseline_within_15pct": 17.0
+      },
+      {
+        "mode": "A",
+        "subset": "saudi_like_top20",
+        "target": "ca",
+        "n": 5907,
+        "within_15pct": 17.1,
+        "within_10pct": 11.2,
+        "mape_pct": 65.1,
+        "median_ape_pct": 40.8,
+        "r2_log": 0.191,
+        "baseline_within_15pct": 17.6,
+        "p10_p90_coverage_pct": 94.0
+      },
+      {
+        "mode": "A",
+        "subset": "saudi_like_top20",
+        "target": "mg",
+        "n": 5907,
+        "within_15pct": 12.4,
+        "within_10pct": 8.3,
+        "mape_pct": 82.1,
+        "median_ape_pct": 51.2,
+        "r2_log": 0.079,
+        "baseline_within_15pct": 14.5,
+        "p10_p90_coverage_pct": 88.4
+      },
+      {
+        "mode": "A",
+        "subset": "saudi_like_top20",
+        "target": "na",
+        "n": 5907,
+        "within_15pct": 30.3,
+        "within_10pct": 20.9,
+        "mape_pct": 32.9,
+        "median_ape_pct": 25.0,
+        "r2_log": 0.812,
+        "baseline_within_15pct": 8.5
+      },
+      {
+        "mode": "A",
+        "subset": "saudi_like_top20",
+        "target": "k",
+        "n": 5901,
+        "within_15pct": 16.3,
+        "within_10pct": 10.6,
+        "mape_pct": 102.1,
+        "median_ape_pct": 53.2,
+        "r2_log": 0.296,
+        "baseline_within_15pct": 8.6
+      },
+      {
+        "mode": "A",
+        "subset": "saudi_like_top20",
+        "target": "cl",
+        "n": 5907,
+        "within_15pct": 6.2,
+        "within_10pct": 4.3,
+        "mape_pct": 51.6,
+        "median_ape_pct": 54.8,
+        "r2_log": 0.23,
+        "baseline_within_15pct": 9.3
+      },
+      {
+        "mode": "A",
+        "subset": "saudi_like_top20",
+        "target": "so4",
+        "n": 5907,
+        "within_15pct": 17.3,
+        "within_10pct": 11.7,
+        "mape_pct": 95.2,
+        "median_ape_pct": 43.0,
+        "r2_log": 0.471,
+        "baseline_within_15pct": 11.7
+      },
+      {
+        "mode": "A",
+        "subset": "saudi_like_top20",
+        "target": "hco3",
+        "n": 5907,
+        "within_15pct": 20.5,
+        "within_10pct": 14.1,
+        "mape_pct": 86.1,
+        "median_ape_pct": 39.4,
+        "r2_log": 0.203,
+        "baseline_within_15pct": 18.2
+      },
+      {
+        "mode": "A",
+        "subset": "saudi_like_top20",
+        "target": "sio2",
+        "n": 5326,
+        "within_15pct": 10.8,
+        "within_10pct": 7.2,
+        "mape_pct": 83.1,
+        "median_ape_pct": 46.6,
+        "r2_log": -0.292,
+        "baseline_within_15pct": 19.0
+      },
+      {
+        "mode": "A",
+        "subset": "seawater",
+        "target": "ca",
+        "n": 5700,
+        "within_15pct": 98.6,
+        "within_10pct": 87.0,
+        "mape_pct": 5.6,
+        "median_ape_pct": 5.1,
+        "r2_log": 0.488,
+        "baseline_within_15pct": 96.2,
+        "p10_p90_coverage_pct": 97.6
+      },
+      {
+        "mode": "A",
+        "subset": "seawater",
+        "target": "mg",
+        "n": 5700,
+        "within_15pct": 98.3,
+        "within_10pct": 78.6,
+        "mape_pct": 7.2,
+        "median_ape_pct": 7.2,
+        "r2_log": 0.034,
+        "baseline_within_15pct": 48.5,
+        "p10_p90_coverage_pct": 47.9
+      },
+      {
+        "mode": "A",
+        "subset": "seawater",
+        "target": "na",
+        "n": 5700,
+        "within_15pct": 75.3,
+        "within_10pct": 14.1,
+        "mape_pct": 13.0,
+        "median_ape_pct": 13.1,
+        "r2_log": -1.587,
+        "baseline_within_15pct": 12.6
+      },
+      {
+        "mode": "A",
+        "subset": "seawater",
+        "target": "k",
+        "n": 5700,
+        "within_15pct": 84.2,
+        "within_10pct": 46.2,
+        "mape_pct": 10.6,
+        "median_ape_pct": 10.5,
+        "r2_log": -0.442,
+        "baseline_within_15pct": 96.4
+      },
+      {
+        "mode": "A",
+        "subset": "seawater",
+        "target": "cl",
+        "n": 5700,
+        "within_15pct": 98.9,
+        "within_10pct": 79.5,
+        "mape_pct": 7.6,
+        "median_ape_pct": 7.5,
+        "r2_log": 0.241,
+        "baseline_within_15pct": 97.1
+      },
+      {
+        "mode": "A",
+        "subset": "seawater",
+        "target": "so4",
+        "n": 5700,
+        "within_15pct": 93.8,
+        "within_10pct": 65.9,
+        "mape_pct": 8.4,
+        "median_ape_pct": 8.2,
+        "r2_log": 0.033,
+        "baseline_within_15pct": 97.1
+      },
+      {
+        "mode": "A",
+        "subset": "seawater",
+        "target": "hco3",
+        "n": 5700,
+        "within_15pct": 79.9,
+        "within_10pct": 61.6,
+        "mape_pct": 9.3,
+        "median_ape_pct": 7.6,
+        "r2_log": 0.004,
+        "baseline_within_15pct": 86.9
+      },
+      {
+        "mode": "B",
+        "subset": "overall",
+        "target": "ca",
+        "n": 28313,
+        "within_15pct": 98.4,
+        "within_10pct": 91.6,
+        "mape_pct": 4.5,
+        "median_ape_pct": 3.5,
+        "r2_log": 0.998,
+        "baseline_within_15pct": 76.6,
+        "p10_p90_coverage_pct": 78.6
+      },
+      {
+        "mode": "B",
+        "subset": "overall",
+        "target": "mg",
+        "n": 28313,
+        "within_15pct": 98.2,
+        "within_10pct": 89.2,
+        "mape_pct": 5.0,
+        "median_ape_pct": 4.2,
+        "r2_log": 0.999,
+        "baseline_within_15pct": 76.7,
+        "p10_p90_coverage_pct": 71.0
+      },
+      {
+        "mode": "B",
+        "subset": "overall",
+        "target": "na",
+        "n": 28313,
+        "within_15pct": 98.1,
+        "within_10pct": 85.7,
+        "mape_pct": 5.4,
+        "median_ape_pct": 4.5,
+        "r2_log": 0.999,
+        "baseline_within_15pct": 76.4
+      },
+      {
+        "mode": "B",
+        "subset": "overall",
+        "target": "k",
+        "n": 28281,
+        "within_15pct": 97.9,
+        "within_10pct": 88.4,
+        "mape_pct": 5.0,
+        "median_ape_pct": 4.1,
+        "r2_log": 0.999,
+        "baseline_within_15pct": 76.7
+      },
+      {
+        "mode": "B",
+        "subset": "overall",
+        "target": "cl",
+        "n": 28313,
+        "within_15pct": 98.4,
+        "within_10pct": 91.0,
+        "mape_pct": 4.8,
+        "median_ape_pct": 4.0,
+        "r2_log": 0.999,
+        "baseline_within_15pct": 76.5
+      },
+      {
+        "mode": "B",
+        "subset": "overall",
+        "target": "so4",
+        "n": 28313,
+        "within_15pct": 86.1,
+        "within_10pct": 75.9,
+        "mape_pct": 15.2,
+        "median_ape_pct": 5.2,
+        "r2_log": 0.978,
+        "baseline_within_15pct": 57.1
+      },
+      {
+        "mode": "B",
+        "subset": "overall",
+        "target": "hco3",
+        "n": 28313,
+        "within_15pct": 96.5,
+        "within_10pct": 86.5,
+        "mape_pct": 5.3,
+        "median_ape_pct": 4.3,
+        "r2_log": 0.993,
+        "baseline_within_15pct": 58.5
+      },
+      {
+        "mode": "B",
+        "subset": "overall",
+        "target": "sio2",
+        "n": 20625,
+        "within_15pct": 97.9,
+        "within_10pct": 88.7,
+        "mape_pct": 4.9,
+        "median_ape_pct": 3.9,
+        "r2_log": 0.993,
+        "baseline_within_15pct": 71.5
+      },
+      {
+        "mode": "B",
+        "subset": "saudi_like_top20",
+        "target": "ca",
+        "n": 5904,
+        "within_15pct": 97.8,
+        "within_10pct": 89.8,
+        "mape_pct": 4.8,
+        "median_ape_pct": 3.7,
+        "r2_log": 0.995,
+        "baseline_within_15pct": 71.6,
+        "p10_p90_coverage_pct": 78.4
+      },
+      {
+        "mode": "B",
+        "subset": "saudi_like_top20",
+        "target": "mg",
+        "n": 5904,
+        "within_15pct": 97.5,
+        "within_10pct": 88.8,
+        "mape_pct": 4.8,
+        "median_ape_pct": 3.8,
+        "r2_log": 0.996,
+        "baseline_within_15pct": 71.4,
+        "p10_p90_coverage_pct": 78.1
+      },
+      {
+        "mode": "B",
+        "subset": "saudi_like_top20",
+        "target": "na",
+        "n": 5904,
+        "within_15pct": 98.3,
+        "within_10pct": 90.9,
+        "mape_pct": 4.6,
+        "median_ape_pct": 3.7,
+        "r2_log": 0.996,
+        "baseline_within_15pct": 71.9
+      },
+      {
+        "mode": "B",
+        "subset": "saudi_like_top20",
+        "target": "k",
+        "n": 5898,
+        "within_15pct": 97.6,
+        "within_10pct": 88.6,
+        "mape_pct": 4.9,
+        "median_ape_pct": 3.8,
+        "r2_log": 0.996,
+        "baseline_within_15pct": 72.0
+      },
+      {
+        "mode": "B",
+        "subset": "saudi_like_top20",
+        "target": "cl",
+        "n": 5904,
+        "within_15pct": 98.3,
+        "within_10pct": 90.7,
+        "mape_pct": 4.6,
+        "median_ape_pct": 3.7,
+        "r2_log": 0.996,
+        "baseline_within_15pct": 71.5
+      },
+      {
+        "mode": "B",
+        "subset": "saudi_like_top20",
+        "target": "so4",
+        "n": 5904,
+        "within_15pct": 90.4,
+        "within_10pct": 78.8,
+        "mape_pct": 7.1,
+        "median_ape_pct": 4.8,
+        "r2_log": 0.988,
+        "baseline_within_15pct": 52.3
+      },
+      {
+        "mode": "B",
+        "subset": "saudi_like_top20",
+        "target": "hco3",
+        "n": 5904,
+        "within_15pct": 95.3,
+        "within_10pct": 83.9,
+        "mape_pct": 5.7,
+        "median_ape_pct": 4.5,
+        "r2_log": 0.99,
+        "baseline_within_15pct": 49.9
+      },
+      {
+        "mode": "B",
+        "subset": "saudi_like_top20",
+        "target": "sio2",
+        "n": 5323,
+        "within_15pct": 97.5,
+        "within_10pct": 89.0,
+        "mape_pct": 4.9,
+        "median_ape_pct": 3.9,
+        "r2_log": 0.992,
+        "baseline_within_15pct": 71.8
+      },
+      {
+        "mode": "B",
+        "subset": "seawater",
+        "target": "ca",
+        "n": 5701,
+        "within_15pct": 99.9,
+        "within_10pct": 97.9,
+        "mape_pct": 3.5,
+        "median_ape_pct": 2.9,
+        "r2_log": 0.779,
+        "baseline_within_15pct": 96.6,
+        "p10_p90_coverage_pct": 73.2
+      },
+      {
+        "mode": "B",
+        "subset": "seawater",
+        "target": "mg",
+        "n": 5701,
+        "within_15pct": 99.6,
+        "within_10pct": 89.4,
+        "mape_pct": 5.7,
+        "median_ape_pct": 5.5,
+        "r2_log": 0.412,
+        "baseline_within_15pct": 96.2,
+        "p10_p90_coverage_pct": 36.4
+      },
+      {
+        "mode": "B",
+        "subset": "seawater",
+        "target": "na",
+        "n": 5701,
+        "within_15pct": 97.3,
+        "within_10pct": 65.8,
+        "mape_pct": 8.6,
+        "median_ape_pct": 8.7,
+        "r2_log": -0.19,
+        "baseline_within_15pct": 96.7
+      },
+      {
+        "mode": "B",
+        "subset": "seawater",
+        "target": "k",
+        "n": 5701,
+        "within_15pct": 98.8,
+        "within_10pct": 86.9,
+        "mape_pct": 5.7,
+        "median_ape_pct": 5.3,
+        "r2_log": 0.486,
+        "baseline_within_15pct": 96.6
+      },
+      {
+        "mode": "B",
+        "subset": "seawater",
+        "target": "cl",
+        "n": 5701,
+        "within_15pct": 99.9,
+        "within_10pct": 95.6,
+        "mape_pct": 4.9,
+        "median_ape_pct": 4.8,
+        "r2_log": 0.626,
+        "baseline_within_15pct": 96.4
+      },
+      {
+        "mode": "B",
+        "subset": "seawater",
+        "target": "so4",
+        "n": 5701,
+        "within_15pct": 99.7,
+        "within_10pct": 94.5,
+        "mape_pct": 4.5,
+        "median_ape_pct": 4.1,
+        "r2_log": 0.657,
+        "baseline_within_15pct": 96.4
+      },
+      {
+        "mode": "B",
+        "subset": "seawater",
+        "target": "hco3",
+        "n": 5701,
+        "within_15pct": 98.9,
+        "within_10pct": 91.5,
+        "mape_pct": 4.5,
+        "median_ape_pct": 3.7,
+        "r2_log": 0.743,
+        "baseline_within_15pct": 96.5
+      }
+    ],
+    "top_features_mg": {
+      "A": {
+        "m_reject_ph": 0.378,
+        "m_feed_ec": 0.146,
+        "is_seawater": 0.079,
+        "m_temp_c": 0.078,
+        "ec_ratio": 0.069,
+        "m_recovery": 0.069,
+        "ec_ratio_over_cf": 0.066,
+        "m_reject_ec": 0.059
+      },
+      "B": {
+        "ec_ratio_over_cf": 0.668,
+        "m_recovery": 0.067,
+        "ec_ratio": 0.048,
+        "lab_mg": 0.028,
+        "feed_drift": 0.021,
+        "cf": 0.02,
+        "m_reject_ec": 0.016,
+        "lab_hco3_dosed_x_cf": 0.013
+      }
+    }
+  },
+  "recommendation_agreement": {
+    "definition": "engine recommendation from predicted composition + measured sensors vs from true composition + true operation (held-out test set)",
+    "acceptance": ">=90% minimum, 95% target",
+    "A": {
+      "overall": {
+        "n": 26656,
+        "agreement_pct": 76.19
+      },
+      "saudi_like_top20": {
+        "n": 5591,
+        "agreement_pct": 71.51
+      },
+      "brackish": {
+        "n": 21314,
+        "agreement_pct": 70.24
+      },
+      "seawater": {
+        "n": 5342,
+        "agreement_pct": 99.94
+      },
+      "excluded_rows_missing_sensor": 1683,
+      "confusion": {
+        "dispose": {
+          "dispose": 2563,
+          "recover": 22,
+          "reduce": 320,
+          "reuse": 288
+        },
+        "recover": {
+          "dispose": 0,
+          "recover": 5339,
+          "reduce": 0,
+          "reuse": 0
+        },
+        "reduce": {
+          "dispose": 732,
+          "recover": 3,
+          "reduce": 2368,
+          "reuse": 1974
+        },
+        "reuse": {
+          "dispose": 1416,
+          "recover": 0,
+          "reduce": 1591,
+          "reuse": 10040
+        }
+      }
+    },
+    "B": {
+      "overall": {
+        "n": 26668,
+        "agreement_pct": 97.61
+      },
+      "saudi_like_top20": {
+        "n": 5593,
+        "agreement_pct": 96.48
+      },
+      "brackish": {
+        "n": 21323,
+        "agreement_pct": 97.01
+      },
+      "seawater": {
+        "n": 5345,
+        "agreement_pct": 100.0
+      },
+      "excluded_rows_missing_sensor": 1671,
+      "confusion": {
+        "dispose": {
+          "dispose": 4509,
+          "recover": 0,
+          "reduce": 52,
+          "reuse": 72
+        },
+        "recover": {
+          "dispose": 2,
+          "recover": 5367,
+          "reduce": 0,
+          "reuse": 0
+        },
+        "reduce": {
+          "dispose": 92,
+          "recover": 0,
+          "reduce": 4075,
+          "reuse": 156
+        },
+        "reuse": {
+          "dispose": 109,
+          "recover": 0,
+          "reduce": 154,
+          "reuse": 12080
+        }
+      }
+    },
+    "true_path_mix_pct": {
+      "reuse": 46.1,
+      "recover": 20.2,
+      "dispose": 17.6,
+      "reduce": 16.1
+    }
+  },
+  "discovered_thresholds": {
+    "rules": [
+      {
+        "if": "tds <= 5,681 and sar <= 15.07 and lsi > 0.90",
+        "then": "Reuse",
+        "purity_pct": 94.5,
+        "samples": 14600
+      },
+      {
+        "if": "tds > 5,681 and tds <= 57,670 and lsi > 1.53",
+        "then": "Treat/Dispose",
+        "purity_pct": 99.3,
+        "samples": 4086
+      },
+      {
+        "if": "tds > 57,670",
+        "then": "Recover (Mg)",
+        "purity_pct": 99.0,
+        "samples": 3051
+      },
+      {
+        "if": "tds <= 5,681 and sar > 15.07 and lsi <= 1.54 and sio2 <= 119",
+        "then": "Reduce",
+        "purity_pct": 99.8,
+        "samples": 2511
+      },
+      {
+        "if": "tds <= 5,681 and sar <= 15.07 and lsi <= 0.90 and sio2 <= 73.09",
+        "then": "Reduce",
+        "purity_pct": 97.0,
+        "samples": 1748
+      },
+      {
+        "if": "tds > 5,681 and tds <= 57,670 and lsi <= 1.53 and sio2 <= 121",
+        "then": "Reduce",
+        "purity_pct": 88.4,
+        "samples": 1348
+      },
+      {
+        "if": "tds <= 5,681 and sar <= 15.07 and lsi <= 0.90 and sio2 > 73.09",
+        "then": "Reuse",
+        "purity_pct": 89.5,
+        "samples": 1176
+      },
+      {
+        "if": "tds <= 5,681 and sar > 15.07 and lsi > 1.54",
+        "then": "Treat/Dispose",
+        "purity_pct": 97.1,
+        "samples": 833
+      },
+      {
+        "if": "tds <= 5,681 and sar > 15.07 and lsi <= 1.54 and sio2 > 119",
+        "then": "Treat/Dispose",
+        "purity_pct": 98.3,
+        "samples": 412
+      },
+      {
+        "if": "tds > 5,681 and tds <= 57,670 and lsi <= 1.53 and sio2 > 121",
+        "then": "Treat/Dispose",
+        "purity_pct": 98.7,
+        "samples": 235
+      }
+    ],
+    "tree_fidelity_pct": 95.9,
+    "archetypes": [
+      {
+        "name": "brackish bicarbonate-type",
+        "share_pct": 33.7,
+        "tds_p50": 3301.652179985618,
+        "mg_p50": 42.68666942879774,
+        "top_path": "reduce",
+        "path_mix_pct": {
+          "reduce": 41.0,
+          "reuse": 30.8,
+          "dispose": 28.2,
+          "recover": 0.0
+        }
+      },
+      {
+        "name": "seawater-concentrate high-Mg recoverable",
+        "share_pct": 11.9,
+        "tds_p50": 72223.65593683635,
+        "mg_p50": 2748.2447302905175,
+        "top_path": "recover",
+        "path_mix_pct": {
+          "recover": 84.7,
+          "dispose": 11.1,
+          "reduce": 4.2,
+          "reuse": 0.0
+        }
+      },
+      {
+        "name": "low-salinity bicarbonate-type",
+        "share_pct": 54.4,
+        "tds_p50": 2242.3590003918343,
+        "mg_p50": 125.04580878778586,
+        "top_path": "reuse",
+        "path_mix_pct": {
+          "reuse": 72.2,
+          "dispose": 15.1,
+          "reduce": 12.7,
+          "recover": 0.1
+        }
+      }
+    ],
+    "path_quantiles": {
+      "Treat/Dispose": {
+        "n": 7596,
+        "tds": [
+          3286.82,
+          8021.56,
+          19957.75
+        ],
+        "mg": [
+          6.45,
+          253.37,
+          874.31
+        ],
+        "ca": [
+          25.56,
+          668.3,
+          2008.95
+        ],
+        "so4": [
+          232.26,
+          2952.32,
+          9016.91
+        ],
+        "sar": [
+          2.56,
+          17.04,
+          89.36
+        ],
+        "lsi": [
+          1.27,
+          2.1,
+          2.94
+        ],
+        "gypsum_sr": [
+          0.01,
+          0.63,
+          3.3
+        ],
+        "reject_flow_m3d": [
+          14.43,
+          65.24,
+          293.09
+        ],
+        "recovery": [
+          0.67,
+          0.8,
+          0.87
+        ]
+      },
+      "Recover (Mg)": {
+        "n": 4056,
+        "tds": [
+          64650.12,
+          73812.12,
+          84214.04
+        ],
+        "mg": [
+          2400.49,
+          2829.43,
+          3338.42
+        ],
+        "ca": [
+          754.04,
+          851.47,
+          966.03
+        ],
+        "so4": [
+          4910.69,
+          5526.32,
+          6267.46
+        ],
+        "sar": [
+          79.39,
+          90.42,
+          102.34
+        ],
+        "lsi": [
+          1.63,
+          1.85,
+          2.09
+        ],
+        "gypsum_sr": [
+          0.28,
+          0.33,
+          0.4
+        ],
+        "reject_flow_m3d": [
+          830.16,
+          3902.71,
+          18755.82
+        ],
+        "recovery": [
+          0.37,
+          0.43,
+          0.49
+        ]
+      },
+      "Reduce": {
+        "n": 8481,
+        "tds": [
+          1101.5,
+          2787.57,
+          7833.15
+        ],
+        "mg": [
+          1.12,
+          32.78,
+          203.16
+        ],
+        "ca": [
+          5.41,
+          101.12,
+          473.74
+        ],
+        "so4": [
+          135.2,
+          628.86,
+          2916.33
+        ],
+        "sar": [
+          1.53,
+          18.79,
+          124.19
+        ],
+        "lsi": [
+          -0.31,
+          0.71,
+          1.33
+        ],
+        "gypsum_sr": [
+          0.0,
+          0.06,
+          0.54
+        ],
+        "reject_flow_m3d": [
+          21.39,
+          93.85,
+          414.55
+        ],
+        "recovery": [
+          0.61,
+          0.68,
+          0.81
+        ]
+      },
+      "Reuse": {
+        "n": 19867,
+        "tds": [
+          1138.32,
+          2059.64,
+          4070.09
+        ],
+        "mg": [
+          41.25,
+          109.41,
+          241.32
+        ],
+        "ca": [
+          164.17,
+          334.51,
+          653.8
+        ],
+        "so4": [
+          88.53,
+          404.72,
+          1411.73
+        ],
+        "sar": [
+          0.44,
+          2.09,
+          7.2
+        ],
+        "lsi": [
+          0.99,
+          1.68,
+          2.47
+        ],
+        "gypsum_sr": [
+          0.03,
+          0.15,
+          0.55
+        ],
+        "reject_flow_m3d": [
+          17.7,
+          78.18,
+          350.36
+        ],
+        "recovery": [
+          0.63,
+          0.74,
+          0.85
+        ]
+      }
+    },
+    "path_mix_pct": {
+      "reuse": 49.7,
+      "reduce": 21.2,
+      "dispose": 19.0,
+      "recover": 10.1
+    }
+  },
+  "known_limitations": [
+    "Trained on US groundwater (USGS) re-weighted toward Saudi chemistry and passed through an RO simulator - no real Saudi reject samples yet. Next step: fine-tune on pilot-plant samples.",
+    "Mode A (sensors only) cannot determine individual ions from conductivity alone; it is a screening mode. Mode B (with last feed lab) is the mode that meets +/-15%.",
+    "Simulated 'last lab' staleness is 0-15% random drift; real feed changes (new wells, seasons) may be larger.",
+    "Acid dosing is simulated for 60% of brackish plants (H2SO4 to pH 6.5-7.2); antiscalant chemistry is represented only through the limits in assumptions.yaml.",
+    "LSI (Langelier) is only valid below 10,000 mg/L TDS; for seawater concentrate it is indicative only (Stiff-Davis would be more appropriate).",
+    "Gypsum saturation uses Davies activities with a PHREEQC (phreeqc.dat) calibration; phreeqc.dat is itself approximate above ionic strength ~1 (seawater concentrate); Pitzer would be more accurate.",
+    "P10-P90 bands are conformally calibrated on held-out US states; for seawater the Mg band under-covers (no seawater calibration group available).",
+    "Conductivity beyond the fitted range (TDS > ~8,700 mg/L) is extrapolated with the FAO slope.",
+    "Mg recovery economics use literature price/cost ranges and an assumed small-scale multiplier; no reagent-price sensitivity or site CAPEX is included.",
+    "Reuse considers FAO TDS and SAR classes for surface irrigation only (no boron, chloride toxicity, crop tolerance or SAR x ECw infiltration interaction)."
+  ],
+  "confirm_items": [
+    {
+      "item": "assumptions.simulation.rejection_divalent",
+      "value": [
+        0.985,
+        0.997
+      ],
+      "source": "Typical polyamide RO membrane ion rejection (team brief)",
+      "status": "pending chemist confirmation"
+    },
+    {
+      "item": "assumptions.simulation.rejection_monovalent",
+      "value": [
+        0.96,
+        0.99
+      ],
+      "source": "Typical polyamide RO membrane ion rejection (team brief)",
+      "status": "pending chemist confirmation"
+    },
+    {
+      "item": "assumptions.simulation.rejection_hco3",
+      "value": [
+        0.95,
+        0.98
+      ],
+      "source": "Typical polyamide RO membrane ion rejection (team brief)",
+      "status": "pending chemist confirmation"
+    },
+    {
+      "item": "assumptions.simulation.rejection_sio2",
+      "value": [
+        0.95,
+        0.99
+      ],
+      "source": "Typical polyamide RO membrane ion rejection (team brief)",
+      "status": "pending chemist confirmation"
+    },
+    {
+      "item": "assumptions.simulation.temp_seawater_c",
+      "value": [
+        22,
+        34
+      ],
+      "source": "Red Sea / Arabian Gulf surface water annual range (approximate)",
+      "status": "pending chemist confirmation"
+    },
+    {
+      "item": "assumptions.simulation.plant_feed_m3d_seawater",
+      "value": [
+        1000,
+        50000
+      ],
+      "source": "Small-to-medium SWRO plant range; our assumption",
+      "status": "pending chemist confirmation"
+    },
+    {
+      "item": "assumptions.simulation.acid_dosing_share_brackish",
+      "value": 0.6,
+      "source": "Our assumption: share of brackish RO plants dosing H2SO4 to control carbonate scaling",
+      "status": "pending chemist confirmation"
+    },
+    {
+      "item": "assumptions.simulation.acid_target_feed_ph",
+      "value": [
+        6.5,
+        7.2
+      ],
+      "source": "Typical acidified RO feed pH range (DuPont FilmTec RO manual, scale control section)",
+      "status": "pending chemist confirmation"
+    },
+    {
+      "item": "assumptions.scaling.gypsum_saturation_max",
+      "value": 2.3,
+      "source": "Typical antiscalant limit for CaSO4 (~230% saturation)",
+      "status": "pending chemist confirmation"
+    },
+    {
+      "item": "assumptions.reuse_irrigation.min_reject_share_in_blend",
+      "value": 0.25,
+      "source": "Our assumption: reuse is only practical if the reject is >=25% of the blended irrigation water",
+      "status": "pending chemist confirmation"
+    },
+    {
+      "item": "assumptions.recover_magnesium.small_scale_cost_multiplier",
+      "value": 3.0,
+      "source": "Our assumption: small plants (<=50 t/yr) cost ~3x more per kg; interpolated on log-scale up to 5,000 t/yr",
+      "status": "pending chemist confirmation"
+    },
+    {
+      "item": "assumptions.recover_magnesium.small_scale_t_yr",
+      "value": 50,
+      "source": "Our assumption (scale where the full multiplier applies)",
+      "status": "pending chemist confirmation"
+    },
+    {
+      "item": "assumptions.recover_magnesium.high_purity_max_ca_mg_ratio",
+      "value": 0.5,
+      "source": "Our assumption: high-purity Mg(OH)2 needs low Ca co-precipitation (mass Ca/Mg < 0.5, seawater ~0.3)",
+      "status": "pending chemist confirmation"
+    },
+    {
+      "item": "assumptions.recover_magnesium.min_production_t_yr",
+      "value": 10,
+      "source": "Our assumption: below 10 t/yr recovery is not worth operating",
+      "status": "pending chemist confirmation"
+    },
+    {
+      "item": "assumptions.economics.eur_to_usd",
+      "value": 1.08,
+      "source": "Approximate ECB reference rate (2024-2025 average); update as needed",
+      "status": "pending chemist confirmation"
+    },
+    {
+      "item": "assumptions.economics.disposal_cost_sar_m3",
+      "value": 2.0,
+      "source": "PLACEHOLDER - ask experts",
+      "status": "pending chemist confirmation"
+    },
+    {
+      "item": "assumptions.dispose.fallback_score",
+      "value": 35,
+      "source": "Our assumption: Treat/Dispose wins only when every value-path scores below this",
+      "status": "pending chemist confirmation"
+    },
+    {
+      "item": "saudi_profiles.red_sea_jeddah_seawater",
+      "value": null,
+      "source": "Lenntech seawater composition table (secondary source)",
+      "note": "CONFIRM - Mg/Ca look low vs standard seawater ratios (Mg/Cl here 0.033 vs 0.066 in standard seawater). Not used by default; see red_sea_standard_ratio_seawater.",
+      "status": "pending chemist confirmation"
+    },
+    {
+      "item": "saudi_profiles.saudi_signature",
+      "value": null,
+      "source": "Derived from the profiles above (TDS/EC ranges, ion dominance order, KFUPM and Midyan Ca/Mg/SO4 values)",
+      "note": "",
+      "status": "pending chemist confirmation"
+    }
+  ]
+}
