@@ -134,11 +134,17 @@ def saudi_likeness(df):
     return tds_f * (0.5 * order + 0.5 * ratio_f)
 
 
+def saudi_weight(score):
+    """Training sample weight: strongly favours Saudi-like chemistry (the product is deployed in
+    Saudi Arabia) while keeping every real analysis in the training set."""
+    return 0.05 + np.asarray(score, dtype=float) ** 2
+
+
 def main():
     raw = load_raw()
     df, log = clean(raw)
     df["saudi_score"] = saudi_likeness(df)
-    df["sample_weight"] = 0.2 + df["saudi_score"]
+    df["sample_weight"] = saudi_weight(df["saudi_score"])
     df["saudi_top20"] = df["saudi_score"] >= df["saudi_score"].quantile(0.80)
     ec = chem.fit_ec_model(df)
     print(f"EC model: n={ec['n']:,} rmse(log10)={ec['rmse_log10']:.4f} "
